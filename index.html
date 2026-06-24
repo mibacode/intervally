@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Intervally | Nested Interval Timer PWA</title>
+  
+  <!-- SEO & PWA Meta Tags -->
+  <meta name="description" content="A highly customizable nesting interval timer PWA. Synthesizes audio locally, uses Screen Wake Lock to stay active, and operates fully offline.">
+  <meta name="theme-color" content="#0b0f19">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="manifest" href="manifest.json">
+  <link rel="shortcut icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/icon.svg">
+  
+  <link rel="stylesheet" href="index.css">
+</head>
+<body>
+
+  <!-- Screen edge flash overlay for visual beeps -->
+  <div id="flash-overlay" class="flash-overlay"></div>
+
+  <div class="app-container">
+    
+    <!-- Header Area -->
+    <header class="glass-card">
+      <div class="logo-group">
+        <svg class="logo-icon" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#ff7a45" />
+              <stop offset="100%" stop-color="#00f0ff" />
+            </linearGradient>
+          </defs>
+          <circle cx="256" cy="256" r="230" fill="none" stroke="url(#logoGrad)" stroke-width="32" />
+          <polygon points="210,160 210,352 350,256" fill="url(#logoGrad)" />
+        </svg>
+        <h1>Intervally</h1>
+      </div>
+      
+      <div class="header-actions">
+        <!-- Speech Announcement Toggle -->
+        <button id="voice-toggle" class="icon-btn" title="Toggle Voice Announcements">
+          <svg class="icon-on" viewBox="0 0 24 24">
+            <path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM9 11H7V9h2v2zm4 0h-2V9h2v2zm4 0h-2V9h2v2z"/>
+          </svg>
+          <svg class="icon-off" viewBox="0 0 24 24">
+            <path d="M21.9 21.9L2.1 2.1 1.2 3 3 4.8V16c0 1.1.9 2 2 2h11l3 3 1.9-1.9zM7 11H5.8L7.8 9H7v2zm4 0H9.8L11.8 9H11v2zm2 2H13.8L15.8 11H15v2zM6.8 4L20 17.2V4H6.8z"/>
+          </svg>
+        </button>
+        <!-- Sound FX Toggle -->
+        <button id="sound-toggle" class="icon-btn" title="Toggle Sound Beeps">
+          <svg class="icon-on" viewBox="0 0 24 24">
+            <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+          </svg>
+          <svg class="icon-off" viewBox="0 0 24 24">
+            <path d="M19 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.21.05-.42.05-.63zm1.66 4.34L19.4 15.08A7.95 7.95 0 0 0 20 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71 0 .94-.2 1.82-.54 2.64l1.51 1.51c.33-.86.53-1.78.53-2.75 0 1.09-.27 2.12-.76 3.03l1.42 1.42zM12 4L9.91 6.09 12 8.18V4zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3z"/>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- MAIN VIEWS -->
+    
+    <!-- 1. CONFIGURATION VIEW -->
+    <main id="config-view" class="view active">
+      <div class="glass-card config-section">
+        <h2 class="section-title">Timer Parameters</h2>
+        
+        <div class="control-grid">
+          <!-- Warmup Duration -->
+          <div class="control-item">
+            <div class="control-label">
+              <span class="label-title">Warmup Time</span>
+              <span class="label-desc">Prep before clock starts</span>
+            </div>
+            <div class="stepper">
+              <button class="step-btn" data-param="warmupDuration" data-step="-5">-</button>
+              <span class="step-val" id="val-warmupDuration">5s</span>
+              <button class="step-btn" data-param="warmupDuration" data-step="5">+</button>
+            </div>
+          </div>
+          
+          <!-- Beep Interval -->
+          <div class="control-item">
+            <div class="control-label">
+              <span class="label-title">Interval</span>
+              <span class="label-desc">Time between work ticks</span>
+            </div>
+            <div class="stepper">
+              <button class="step-btn" data-param="beepInterval" data-step="-1">-</button>
+              <span class="step-val" id="val-beepInterval">5s</span>
+              <button class="step-btn" data-param="beepInterval" data-step="1">+</button>
+            </div>
+          </div>
+
+          <!-- Beep Count Target -->
+          <div class="control-item">
+            <div class="control-label">
+              <span class="label-title">Count Target</span>
+              <span class="label-desc">Ticks per work round</span>
+            </div>
+            <div class="stepper">
+              <button class="step-btn" data-param="beepCountTarget" data-step="-1">-</button>
+              <span class="step-val" id="val-beepCountTarget">10</span>
+              <button class="step-btn" data-param="beepCountTarget" data-step="1">+</button>
+            </div>
+          </div>
+
+          <!-- Beep Duration -->
+          <div class="control-item">
+            <div class="control-label">
+              <span class="label-title">Beep Length</span>
+              <span class="label-desc">Duration of audio tone</span>
+            </div>
+            <div class="stepper">
+              <button class="step-btn" data-param="beepDuration" data-step="-0.05">-</button>
+              <span class="step-val" id="val-beepDuration">0.1s</span>
+              <button class="step-btn" data-param="beepDuration" data-step="0.05">+</button>
+            </div>
+          </div>
+
+          <!-- Pause / Rest Duration -->
+          <div class="control-item">
+            <div class="control-label">
+              <span class="label-title">Pause / Rest Loop</span>
+              <span class="label-desc">Resting time between rounds</span>
+            </div>
+            <div class="stepper">
+              <button class="step-btn" data-param="pauseDuration" data-step="-5">-</button>
+              <span class="step-val" id="val-pauseDuration">60s</span>
+              <button class="step-btn" data-param="pauseDuration" data-step="5">+</button>
+            </div>
+          </div>
+
+          <!-- Iteration Target -->
+          <div class="control-item">
+            <div class="control-label">
+              <span class="label-title">Iterations (Rounds)</span>
+              <span class="label-desc">Total loop cycles to complete</span>
+            </div>
+            <div class="stepper">
+              <button class="step-btn" data-param="iterationTarget" data-step="-1">-</button>
+              <span class="step-val" id="val-iterationTarget">3</span>
+              <button class="step-btn" data-param="iterationTarget" data-step="1">+</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Presets Dashboard -->
+      <div class="glass-card presets-container">
+        <div class="presets-header">
+          <h2 class="section-title" style="margin-bottom:0;">Workout Presets</h2>
+          <button id="save-preset-btn" class="icon-btn" style="width:32px; height:32px; border-radius:10px;" title="Save current settings as preset">
+            <svg viewBox="0 0 24 24" style="width:16px; height:16px;">
+              <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+            </svg>
+          </button>
+        </div>
+        
+        <div class="presets-scroll" id="presets-list">
+          <!-- Dynamic Chips will load here -->
+        </div>
+      </div>
+
+      <!-- Start Action Button -->
+      <button id="start-btn" class="btn-primary">
+        <svg viewBox="0 0 24 24" style="width: 24px; height: 24px; fill: currentColor;">
+          <path d="M8 5v14l11-7z"/>
+        </svg>
+        Start Workout
+      </button>
+    </main>
+
+    <!-- 2. ACTIVE RUNNING TIMER VIEW -->
+    <main id="active-view" class="view">
+      <div class="glass-card active-container">
+        
+        <!-- Interactive Horizontal Progress Timeline -->
+        <div class="timeline-wrapper" id="timeline-bar">
+          <!-- Loaded dynamically with block segments -->
+        </div>
+
+        <!-- Master Count Ring -->
+        <div class="timer-ring-container">
+          <svg class="timer-svg">
+            <circle class="timer-circle-bg" cx="130" cy="130" r="120" />
+            <circle class="timer-circle-progress" id="progress-circle" cx="130" cy="130" r="120" />
+          </svg>
+          
+          <div class="timer-display">
+            <span class="timer-state-label" id="timer-state">WARMUP</span>
+            <span class="timer-countdown" id="timer-time">00:05</span>
+            <span class="timer-iteration-label" id="timer-iteration">Round 1 / 3</span>
+          </div>
+        </div>
+
+        <!-- Sub Stats Cards -->
+        <div class="active-details">
+          <div class="detail-card">
+            <div class="detail-val" id="detail-total-left">05:45</div>
+            <div class="detail-lbl">Total Left</div>
+          </div>
+          <div class="detail-card">
+            <div class="detail-val" id="detail-beep-count">1 / 10</div>
+            <div class="detail-lbl">Beeps</div>
+          </div>
+        </div>
+
+        <!-- Control Action Row -->
+        <div class="control-row">
+          <!-- Pause/Resume -->
+          <button id="pause-btn" class="btn-circle btn-pause" title="Pause Timer">
+            <svg id="pause-icon" viewBox="0 0 24 24">
+              <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
+            </svg>
+            <svg id="resume-icon" viewBox="0 0 24 24" style="display:none;">
+              <path d="M8 5v14l11-7z"/>
+            </svg>
+          </button>
+          
+          <!-- Stop / Cancel -->
+          <button id="stop-btn" class="btn-circle btn-stop" title="Stop & Reset">
+            <svg viewBox="0 0 24 24">
+              <path d="M6 6h12v12H6z"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </main>
+
+    <!-- 3. WORKOUT COMPLETION VIEW -->
+    <main id="completion-view" class="view">
+      <div class="glass-card completion-container">
+        <div class="completion-icon">
+          <svg viewBox="0 0 24 24" style="width:50px; height:50px; fill:currentColor;">
+            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+          </svg>
+        </div>
+        
+        <h2 class="completion-title">Workout Completed!</h2>
+        <p class="completion-text" id="completion-summary">
+          Great work! You completed 3 rounds of exercise, hearing 30 beeps over 5 minutes and 15 seconds.
+        </p>
+        
+        <button id="back-btn" class="btn-primary" style="width:100%;">
+          Back to Configuration
+        </button>
+      </div>
+    </main>
+
+    <!-- Hardware Wake Lock Status Tag -->
+    <div class="wakelock-status">
+      <div class="wakelock-dot" id="wakelock-dot"></div>
+      <span id="wakelock-txt">Screen Wake Lock Inactive</span>
+    </div>
+
+    <!-- Page Footer -->
+    <footer>
+      Intervally PWA &bull; v1.0 &bull; Offline Ready
+    </footer>
+
+  </div>
+
+  <!-- PRESET CREATION MODAL DIALOG -->
+  <div class="preset-modal" id="preset-modal">
+    <div class="modal-content">
+      <div class="modal-header">Save Custom Preset</div>
+      <input type="text" class="modal-input" id="preset-name-input" placeholder="e.g. Boxing, HIIT Sprint" maxlength="20">
+      <div class="modal-buttons">
+        <button id="modal-cancel-btn" class="btn-secondary">Cancel</button>
+        <button id="modal-save-btn" class="btn-modal-action">Save Preset</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Core Javascript Loader -->
+  <script src="app.js"></script>
+</body>
+</html>

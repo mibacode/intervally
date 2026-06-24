@@ -1,0 +1,25 @@
+{
+  "name": "Intervally Nested Timer",
+  "short_name": "Intervally",
+  "description": "A highly customizable nesting interval timer designed for workout circuits and focus sessions.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0b0f19",
+  "theme_color": "#0b0f19",
+  "orientation": "portrait",
+  "categories": ["health", "utilities"],
+  "icons": [
+    {
+      "src": "icons/icon.svg",
+      "sizes": "48x48 72x72 96x96 128x128 192x192 256x256 384x384 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon.svg",
+      "sizes": "48x48 72x72 96x96 128x128 192x192 256x256 384x384 512x512",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}
