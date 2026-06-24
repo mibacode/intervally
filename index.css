@@ -14,6 +14,7 @@
   --accent-emerald: #00e676;
   --accent-purple: #d500f9;
   --accent-crimson: #ff2d55;
+  --accent-break: #ffb300;
   
   /* Current Active Accent (starts as Cyan, shifts during states) */
   --theme-accent: var(--accent-cyan);
@@ -439,6 +440,7 @@ input:checked + .slider:before {
 
 .timeline-segment.warmup { background: var(--accent-cyan); opacity: 0.3; }
 .timeline-segment.work { background: var(--accent-orange); opacity: 0.3; }
+.timeline-segment.break { background: var(--accent-break); opacity: 0.3; }
 .timeline-segment.rest { background: var(--accent-emerald); opacity: 0.3; }
 
 .timeline-segment.active {

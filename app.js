@@ -5,6 +5,7 @@ const defaultPresets = [
     name: 'Classic Tabata',
     warmupDuration: 10,
     beepInterval: 20,
+    intervalBreak: 0,
     beepCountTarget: 1,
     beepDuration: 0.1,
     pauseDuration: 10,
@@ -16,6 +17,7 @@ const defaultPresets = [
     name: 'Boxing Rounds',
     warmupDuration: 15,
     beepInterval: 60,
+    intervalBreak: 0,
     beepCountTarget: 3,
     beepDuration: 0.15,
     pauseDuration: 60,
@@ -27,6 +29,7 @@ const defaultPresets = [
     name: 'Nested HIIT Sprint',
     warmupDuration: 10,
     beepInterval: 5,
+    intervalBreak: 0,
     beepCountTarget: 6, // 30 seconds total work round
     beepDuration: 0.08,
     pauseDuration: 15, // 15 seconds rest
@@ -38,6 +41,7 @@ const defaultPresets = [
     name: 'Beep Test Run',
     warmupDuration: 10,
     beepInterval: 8,
+    intervalBreak: 0,
     beepCountTarget: 10, // 80s of running per level
     beepDuration: 0.1,
     pauseDuration: 30, // 30s rest between levels
@@ -51,6 +55,7 @@ let timerConfig = {
   warmupDuration: 5,
   beepDuration: 0.1,
   beepInterval: 5,
+  intervalBreak: 5,
   beepCountTarget: 10,
   pauseDuration: 60,
   iterationTarget: 3,
@@ -200,7 +205,8 @@ function calculateTotalDuration(config) {
   let total = 0;
   total += config.warmupDuration;
   const workRound = config.beepInterval * config.beepCountTarget;
-  const totalWork = workRound * config.iterationTarget;
+  const breakRound = (config.intervalBreak || 0) * (config.beepCountTarget - 1);
+  const totalWork = (workRound + breakRound) * config.iterationTarget;
   const totalRest = config.pauseDuration * (config.iterationTarget - 1);
   total += totalWork + totalRest;
   return total;
@@ -214,6 +220,9 @@ function applyBounds(param) {
   } else if (param === 'beepInterval') {
     if (timerConfig.beepInterval < 1) timerConfig.beepInterval = 1;
     if (timerConfig.beepInterval > 3600) timerConfig.beepInterval = 3600;
+  } else if (param === 'intervalBreak') {
+    if (timerConfig.intervalBreak < 0) timerConfig.intervalBreak = 0;
+    if (timerConfig.intervalBreak > 300) timerConfig.intervalBreak = 300;
   } else if (param === 'beepCountTarget') {
     if (timerConfig.beepCountTarget < 1) timerConfig.beepCountTarget = 1;
     if (timerConfig.beepCountTarget > 100) timerConfig.beepCountTarget = 100;
@@ -232,6 +241,7 @@ function applyBounds(param) {
 function updateStepperUI() {
   document.getElementById('val-warmupDuration').textContent = `${timerConfig.warmupDuration}s`;
   document.getElementById('val-beepInterval').textContent = `${timerConfig.beepInterval}s`;
+  document.getElementById('val-intervalBreak').textContent = `${timerConfig.intervalBreak}s`;
   document.getElementById('val-beepCountTarget').textContent = timerConfig.beepCountTarget;
   document.getElementById('val-beepDuration').textContent = `${timerConfig.beepDuration}s`;
   document.getElementById('val-pauseDuration').textContent = `${timerConfig.pauseDuration}s`;
@@ -320,6 +330,7 @@ function selectPreset(id) {
   if (selected) {
     timerConfig.warmupDuration = selected.warmupDuration;
     timerConfig.beepInterval = selected.beepInterval;
+    timerConfig.intervalBreak = selected.intervalBreak || 0;
     timerConfig.beepCountTarget = selected.beepCountTarget;
     timerConfig.beepDuration = selected.beepDuration;
     timerConfig.pauseDuration = selected.pauseDuration;
@@ -341,6 +352,7 @@ function saveCustomPreset(name) {
     name: name,
     warmupDuration: timerConfig.warmupDuration,
     beepInterval: timerConfig.beepInterval,
+    intervalBreak: timerConfig.intervalBreak,
     beepCountTarget: timerConfig.beepCountTarget,
     beepDuration: timerConfig.beepDuration,
     pauseDuration: timerConfig.pauseDuration,
@@ -457,6 +469,11 @@ function startSegment(idx) {
     glow = 'rgba(255, 122, 69, 0.25)';
     stateTxt = `WORK ${seg.beepIndex} / ${timerConfig.beepCountTarget}`;
     playTone(880, timerConfig.beepDuration, audioCtx.currentTime);
+  } else if (seg.type === 'BREAK') {
+    accent = 'var(--accent-break)';
+    glow = 'rgba(255, 179, 0, 0.25)';
+    stateTxt = `BREAK ${seg.beepIndex} / ${timerConfig.beepCountTarget - 1}`;
+    playTone(440, timerConfig.beepDuration, audioCtx.currentTime);
   } else if (seg.type === 'REST') {
     accent = 'var(--accent-emerald)';
     glow = 'rgba(0, 230, 118, 0.25)';
@@ -476,7 +493,7 @@ function startSegment(idx) {
   document.getElementById('timer-iteration').textContent = `Round ${seg.iteration} / ${timerConfig.iterationTarget}`;
 
   const beepsLabel = document.getElementById('detail-beep-count');
-  beepsLabel.textContent = seg.type === 'WORK' ? `${seg.beepIndex} / ${timerConfig.beepCountTarget}` : '--';
+  beepsLabel.textContent = (seg.type === 'WORK' || seg.type === 'BREAK') ? `${seg.beepIndex} / ${timerConfig.beepCountTarget}` : '--';
 
   speak(speech);
   triggerFlash();
@@ -534,6 +551,11 @@ function startWorkout() {
   for (let r = 1; r <= timerConfig.iterationTarget; r++) {
     for (let b = 1; b <= timerConfig.beepCountTarget; b++) {
       segments.push({ type: 'WORK', duration: timerConfig.beepInterval, iteration: r, beepIndex: b });
+      
+      // Add interval break between work segments (but not after the final work segment of the round)
+      if (b < timerConfig.beepCountTarget && timerConfig.intervalBreak > 0) {
+        segments.push({ type: 'BREAK', duration: timerConfig.intervalBreak, iteration: r, beepIndex: b });
+      }
     }
     if (r < timerConfig.iterationTarget && timerConfig.pauseDuration > 0) {
       segments.push({ type: 'REST', duration: timerConfig.pauseDuration, iteration: r, beepIndex: 0 });
