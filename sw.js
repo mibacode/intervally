@@ -1,4 +1,4 @@
-const CACHE_NAME = 'intervally-v1';
+const CACHE_NAME = 'intervally-v2';
 const ASSETS = [
   './',
   './index.html',
